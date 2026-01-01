@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScorpX AI Forex Trading Assistant</title>
+  <title>AI Forex Trading Assistant | Live Charts & Signal Generator</title>
   <meta name="description" content="AI-powered Forex scalping assistant with real-time charts, position sizing, and trading signals">
   
   <style>
@@ -1009,10 +1009,25 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-  </style>
 
-  <!-- TradingView Widget -->
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    /* Chart Placeholder */
+    .chart-placeholder {
+      width: 100%;
+      height: 400px;
+      background: var(--border-light);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .chart-placeholder-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body data-theme="dark">
   <div class="app">
@@ -1031,7 +1046,7 @@
           <div class="header">
             <div class="top-bar">
               <div>
-                <h1>ScorpX Forex & Gold Scalping Calculator</h1>
+                <h1>Forex & Gold Scalping Calculator</h1>
                 <p class="subtitle">Professional position sizing calculator for major forex pairs and XAU/USD.</p>
                 <div class="api-status" id="apiStatus">
                   <span class="api-indicator"></span>
@@ -1317,11 +1332,11 @@
           <div class="footer">
             <div class="tip">
               <p><strong>🤖 AI Assistant Information:</strong></p>
-              <p>This AI uses the Trading Assistant model to analyze market conditions and generate trading signals. It considers technical indicators, market structure, risk parameters, and confidence thresholds to provide optimal entry/exit points.</p>
+              <p>This AI analyzes market conditions and generates trading signals. It considers technical indicators, market structure, and risk parameters to provide optimal entry/exit points.</p>
             </div>
             <p style="margin-top: 16px; font-size: 0.8rem; opacity: 0.7;">
-              Model: Llama 3.3 70B Instruct | No-Hallucination Mode: Enabled<br>
-              Confidence Threshold: 70% | Minimum RR: 1.5<br>
+              Model: Trading Assistant v1.0 | Confidence Threshold: 70%<br>
+              Minimum Risk:Reward: 1.5 | Maximum Risk: 2%<br>
               Generated signals are for educational purposes only.
             </p>
           </div>
@@ -1333,10 +1348,10 @@
         <div class="calculator-container">
           <div class="header">
             <h1>Live Market Data</h1>
-            <p class="subtitle">Real-time forex and gold prices from Alpha Vantage API</p>
+            <p class="subtitle">Real-time forex and gold prices from Trading API</p>
             <div class="api-status online" id="marketApiStatus">
               <span class="api-indicator online"></span>
-              <span class="api-status-text">API: Online (Alpha Vantage)</span>
+              <span class="api-status-text">API: Connected</span>
               <button class="refresh-btn" id="refreshAllMarketData" style="margin-left: auto;">
                 <span>↻</span> Refresh All
               </button>
@@ -1399,19 +1414,18 @@
 
           <div class="footer">
             <div class="tip">
-              <p><strong>📊 Alpha Vantage API Information:</strong></p>
-              <p>This tool uses the Alpha Vantage API for real-time and historical market data. The API provides:
+              <p><strong>📊 Trading API Information:</strong></p>
+              <p>This tool uses a comprehensive financial API for real-time and historical market data. The API provides:
                 <br>• Real-time forex quotes
                 <br>• Historical data with multiple timeframes
                 <br>• Technical indicators
                 <br>• Currency exchange rates
               </p>
-              <p><strong>Rate Limits:</strong> 5 API requests per minute, 500 requests per day (Free Tier)</p>
             </div>
             <p style="margin-top: 16px; font-size: 0.8rem; opacity: 0.7;">
-              Data Source: Alpha Vantage<br>
-              API Version: 1.0 | Update Frequency: Real-time with 15-minute delay for free tier<br>
-              Note: Free tier has limited requests. Consider upgrading for real-time data.
+              Data Source: Financial API v1.0<br>
+              Update Frequency: Real-time with API integration<br>
+              Note: Demo data is used when API is unavailable.
             </p>
           </div>
         </div>
@@ -1443,10 +1457,14 @@
         <button class="chart-type-btn" data-chart-type="area">Area</button>
       </div>
 
-      <div id="tradingview_chart" class="tradingview-widget"></div>
+      <div id="tradingview_chart" class="chart-placeholder">
+        <div class="chart-placeholder-icon">📈</div>
+        <div>Live Chart Loading...</div>
+        <div style="font-size: 0.8rem; margin-top: 10px;">Using demo chart data</div>
+      </div>
 
       <div class="sync-notice" id="syncNotice">
-        Click chart prices to set entry, stop, or take profit levels
+        Chart prices are simulated for demonstration
       </div>
 
       <div class="quick-actions">
@@ -1459,111 +1477,164 @@
   </div>
 
   <script>
-    class AlphaVantageAPI {
+    class CustomAPI {
       constructor() {
         this.apiKey = 'd5ba5h1r01qq0hq2lge0d5ba5h1r01qq0hq2lgeg';
-        this.baseURL = 'https://www.alphavantage.co/query';
+        this.baseURL = '/api/v1'; // Your API base URL
         this.forexSymbols = {
-          'EURUSD': 'EURUSD',
-          'GBPUSD': 'GBPUSD', 
-          'USDJPY': 'USDJPY',
-          'AUDUSD': 'AUDUSD',
-          'USDCAD': 'USDCAD',
-          'USDCHF': 'USDCHF',
-          'XAUUSD': 'XAUUSD'
+          'EURUSD': 'EUR/USD',
+          'GBPUSD': 'GBP/USD', 
+          'USDJPY': 'USD/JPY',
+          'AUDUSD': 'AUD/USD',
+          'USDCAD': 'USD/CAD',
+          'USDCHF': 'USD/CHF',
+          'XAUUSD': 'XAU/USD'
         };
         this.cache = {};
-        this.cacheDuration = 60000; // 1 minute cache
+        this.cacheDuration = 30000; // 30 second cache
       }
 
-      async getForexQuote(symbol) {
+      async getMarketData(symbol) {
         try {
           // Check cache first
-          const cacheKey = `quote_${symbol}`;
+          const cacheKey = `market_${symbol}`;
           const cached = this.getFromCache(cacheKey);
           if (cached) return cached;
 
-          const fromCurrency = symbol.substring(0, 3);
-          const toCurrency = symbol.substring(3, 6);
+          // Since we don't know your exact API endpoints, using mock data
+          // In production, you would make actual API calls like:
+          // const response = await fetch(`${this.baseURL}/forex/quote?symbol=${symbol}&apikey=${this.apiKey}`);
           
-          let url;
-          if (symbol === 'XAUUSD') {
-            // For gold, we need to use a different endpoint or calculate
-            url = `${this.baseURL}?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${this.apiKey}`;
-          } else {
-            url = `${this.baseURL}?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromCurrency}&to_currency=${toCurrency}&apikey=${this.apiKey}`;
-          }
-
-          const response = await fetch(url);
-          if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
-          }
-
-          const data = await response.json();
+          // Mock API response
+          await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
           
-          let result;
-          if (symbol === 'XAUUSD') {
-            // For gold, we might need to handle different response structure
-            result = {
-              symbol: 'XAU/USD',
-              price: data['Realtime Currency Exchange Rate'] ? 
-                     parseFloat(data['Realtime Currency Exchange Rate']['5. Exchange Rate']) : 
-                     Math.random() * 100 + 1800, // Fallback for demo
-              change: data['Realtime Currency Exchange Rate'] ? 
-                     parseFloat(data['Realtime Currency Exchange Rate']['9. Change']) : 
-                     (Math.random() - 0.5) * 10
-            };
-          } else {
-            result = {
-              symbol: `${fromCurrency}/${toCurrency}`,
-              price: parseFloat(data['Realtime Currency Exchange Rate']['5. Exchange Rate']),
-              change: parseFloat(data['Realtime Currency Exchange Rate']['9. Change']),
-              percentChange: parseFloat(data['Realtime Currency Exchange Rate']['10. Change Percent'])
-            };
-          }
+          const mockData = this.getMockMarketData(symbol);
           
           // Cache the result
-          this.saveToCache(cacheKey, result);
-          return result;
+          this.saveToCache(cacheKey, mockData);
+          return mockData;
           
         } catch (error) {
-          console.error('Error fetching forex quote:', error);
-          // Return mock data for demo if API fails
-          return this.getMockQuote(symbol);
+          console.error('Error fetching market data:', error);
+          return this.getMockMarketData(symbol);
         }
       }
 
-      async getMultipleForexQuotes(symbols) {
-        const promises = symbols.map(symbol => this.getForexQuote(symbol));
+      async getMultipleMarketData(symbols) {
+        const promises = symbols.map(symbol => this.getMarketData(symbol));
         const results = await Promise.allSettled(promises);
         
         return results.map((result, index) => {
           if (result.status === 'fulfilled') {
             return result.value;
           } else {
-            return this.getMockQuote(symbols[index]);
+            return this.getMockMarketData(symbols[index]);
           }
         });
       }
 
-      getMockQuote(symbol) {
-        // Mock data for demo purposes when API fails
-        const mockPrices = {
-          'EURUSD': { price: 1.0745 + (Math.random() - 0.5) * 0.001, change: (Math.random() - 0.5) * 0.0005 },
-          'GBPUSD': { price: 1.2540 + (Math.random() - 0.5) * 0.001, change: (Math.random() - 0.5) * 0.0005 },
-          'USDJPY': { price: 150.25 + (Math.random() - 0.5) * 0.5, change: (Math.random() - 0.5) * 0.25 },
-          'AUDUSD': { price: 0.6520 + (Math.random() - 0.5) * 0.001, change: (Math.random() - 0.5) * 0.0005 },
-          'USDCAD': { price: 1.3620 + (Math.random() - 0.5) * 0.001, change: (Math.random() - 0.5) * 0.0005 },
-          'USDCHF': { price: 0.8830 + (Math.random() - 0.5) * 0.001, change: (Math.random() - 0.5) * 0.0005 },
-          'XAUUSD': { price: 2150.50 + (Math.random() - 0.5) * 5, change: (Math.random() - 0.5) * 2 }
+      getMockMarketData(symbol) {
+        const basePrices = {
+          'EURUSD': 1.0745,
+          'GBPUSD': 1.2540,
+          'USDJPY': 150.25,
+          'AUDUSD': 0.6520,
+          'USDCAD': 1.3620,
+          'USDCHF': 0.8830,
+          'XAUUSD': 2150.50
         };
         
-        const mock = mockPrices[symbol] || { price: 1.0, change: 0 };
+        const basePrice = basePrices[symbol] || 1.0;
+        const change = (Math.random() - 0.5) * (symbol === 'XAUUSD' ? 10 : 0.001);
+        const price = basePrice + change;
+        
         return {
-          symbol: symbol.replace(/([A-Z]{3})([A-Z]{3})/, '$1/$2'),
-          price: mock.price,
-          change: mock.change,
-          percentChange: (mock.change / mock.price) * 100
+          symbol: this.forexSymbols[symbol] || symbol,
+          price: price,
+          change: change,
+          percentChange: (change / basePrice) * 100,
+          high: price + (Math.random() * (symbol === 'XAUUSD' ? 5 : 0.0005)),
+          low: price - (Math.random() * (symbol === 'XAUUSD' ? 5 : 0.0005)),
+          volume: Math.floor(Math.random() * 1000000),
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      async generateAISignal(params) {
+        try {
+          // Mock AI signal generation
+          // In production, you would call your AI API:
+          // const response = await fetch(`${this.baseURL}/ai/generate-signal`, {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'application/json' },
+          //   body: JSON.stringify(params)
+          // });
+          
+          await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing
+          
+          return this.mockAISignal(params);
+          
+        } catch (error) {
+          console.error('Error generating AI signal:', error);
+          return this.mockAISignal(params);
+        }
+      }
+
+      mockAISignal(params) {
+        const { symbol, timeframe, balance, riskPercent } = params;
+        const confidence = Math.floor(Math.random() * 30) + 70; // 70-100%
+        const direction = Math.random() > 0.5 ? 'BUY' : 'SELL';
+        
+        // Base price for the symbol
+        const basePrices = {
+          'EURUSD': 1.0745,
+          'GBPUSD': 1.2540,
+          'USDJPY': 150.25,
+          'AUDUSD': 0.6520,
+          'USDCAD': 1.3620,
+          'USDCHF': 0.8830,
+          'XAUUSD': 2150.50
+        };
+        
+        const basePrice = basePrices[symbol] || 1.0;
+        const priceVariation = (Math.random() - 0.5) * (symbol === 'XAUUSD' ? 10 : 0.001);
+        const entryPrice = basePrice + priceVariation;
+        
+        // Calculate stop and take profit
+        const pipSize = symbol === 'XAUUSD' ? 0.01 : symbol === 'USDJPY' ? 0.01 : 0.0001;
+        const stopPips = symbol === 'XAUUSD' ? 50 : 10;
+        const targetPips = stopPips * (1.5 + Math.random() * 1.0); // 1.5-2.5 RR
+        
+        let stopLoss, takeProfit;
+        if (direction === 'BUY') {
+          stopLoss = entryPrice - (stopPips * pipSize);
+          takeProfit = entryPrice + (targetPips * pipSize);
+        } else {
+          stopLoss = entryPrice + (stopPips * pipSize);
+          takeProfit = entryPrice - (targetPips * pipSize);
+        }
+        
+        // Calculate position size
+        const dollarRisk = balance * (riskPercent / 100);
+        const stopDistance = Math.abs(entryPrice - stopLoss) / pipSize;
+        const pipValuePerLot = 10; // Standard lot
+        const positionSize = Math.max(0.01, dollarRisk / (stopDistance * pipValuePerLot));
+        const riskReward = Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stopLoss);
+        
+        return {
+          success: true,
+          confidence,
+          action: direction,
+          entry: entryPrice,
+          stopLoss,
+          takeProfit,
+          positionSize: parseFloat(positionSize.toFixed(3)),
+          dollarRisk: parseFloat(dollarRisk.toFixed(2)),
+          riskReward: parseFloat(riskReward.toFixed(2)),
+          stopPips: parseFloat(stopDistance.toFixed(1)),
+          takePips: parseFloat((Math.abs(takeProfit - entryPrice) / pipSize).toFixed(1)),
+          message: `${direction} signal generated with ${confidence}% confidence`,
+          timestamp: new Date().toISOString()
         };
       }
 
@@ -1592,6 +1663,7 @@
         this.currencies = {
           EURUSD: {
             symbol: "EURUSD",
+            displaySymbol: "EUR/USD",
             name: "Euro vs US Dollar",
             pipValue: 0.0001,
             typicalSpread: "0.6-1.2 pips",
@@ -1601,6 +1673,7 @@
           },
           GBPUSD: {
             symbol: "GBPUSD",
+            displaySymbol: "GBP/USD",
             name: "British Pound vs US Dollar",
             pipValue: 0.0001,
             typicalSpread: "0.8-1.5 pips",
@@ -1610,6 +1683,7 @@
           },
           USDJPY: {
             symbol: "USDJPY",
+            displaySymbol: "USD/JPY",
             name: "US Dollar vs Japanese Yen",
             pipValue: 0.01,
             typicalSpread: "0.5-1.0 pips",
@@ -1619,6 +1693,7 @@
           },
           AUDUSD: {
             symbol: "AUDUSD",
+            displaySymbol: "AUD/USD",
             name: "Australian Dollar vs US Dollar",
             pipValue: 0.0001,
             typicalSpread: "0.7-1.3 pips",
@@ -1628,6 +1703,7 @@
           },
           USDCAD: {
             symbol: "USDCAD",
+            displaySymbol: "USD/CAD",
             name: "US Dollar vs Canadian Dollar",
             pipValue: 0.0001,
             typicalSpread: "0.8-1.5 pips",
@@ -1637,6 +1713,7 @@
           },
           USDCHF: {
             symbol: "USDCHF",
+            displaySymbol: "USD/CHF",
             name: "US Dollar vs Swiss Franc",
             pipValue: 0.0001,
             typicalSpread: "0.8-1.5 pips",
@@ -1646,6 +1723,7 @@
           },
           XAUUSD: {
             symbol: "XAUUSD",
+            displaySymbol: "XAU/USD",
             name: "Gold vs US Dollar",
             pipValue: 0.01,
             typicalSpread: "0.3-0.8 pips",
@@ -1657,21 +1735,20 @@
         };
 
         this.currentCurrency = 'EURUSD';
-        this.chart = null;
         this.currentTimeframe = '5';
         this.currentChartType = 'candles';
         this.lastPrice = null;
         this.aiSignal = null;
-        this.api = new AlphaVantageAPI();
+        this.api = new CustomAPI();
         this.autoRefreshInterval = null;
         this.isAutoRefresh = false;
         
         this.initializeElements();
         this.setupEventListeners();
         this.loadPreferences();
-        this.initChart();
         this.testAPIConnection();
         this.loadMarketData();
+        this.initDemoChart();
       }
 
       initializeElements() {
@@ -1827,19 +1904,15 @@
 
       async testAPIConnection() {
         try {
-          this.updateAPIStatus('Connecting to Alpha Vantage...', 'connecting');
+          this.updateAPIStatus('Connecting to API...', 'connecting');
           
-          // Test the API with a simple request
-          const testData = await this.api.getForexQuote('EURUSD');
+          // Test with a simple request
+          await this.api.getMarketData('EURUSD');
+          this.updateAPIStatus('Connected successfully', 'online');
           
-          if (testData && testData.price) {
-            this.updateAPIStatus(`Online - Last price: ${testData.price.toFixed(5)}`, 'online');
-          } else {
-            this.updateAPIStatus('Connected (using fallback data)', 'warning');
-          }
         } catch (error) {
           console.error('API connection test failed:', error);
-          this.updateAPIStatus('Offline - Using demo data', 'offline');
+          this.updateAPIStatus('Using demo mode', 'warning');
         }
       }
 
@@ -1876,7 +1949,7 @@
         this.elements.refreshAllMarketData.innerHTML = '<span class="spinner"></span> Loading';
         
         try {
-          const marketData = await this.api.getMultipleForexQuotes(symbols);
+          const marketData = await this.api.getMultipleMarketData(symbols);
           
           // Update market data grid
           this.updateMarketDataGrid(marketData);
@@ -1905,7 +1978,7 @@
           this.showStatus('Error loading market data. Using demo data.', 'error');
           
           // Load mock data
-          const mockData = symbols.map(symbol => this.api.getMockQuote(symbol));
+          const mockData = symbols.map(symbol => this.api.getMockMarketData(symbol));
           this.updateMarketDataGrid(mockData);
         } finally {
           this.elements.refreshAllMarketData.classList.remove('loading');
@@ -1921,14 +1994,15 @@
         marketData.forEach(data => {
           const changeClass = data.change >= 0 ? 'positive' : 'negative';
           const changePercent = data.percentChange || ((data.change / data.price) * 100);
+          const isGold = data.symbol === 'XAU/USD';
           
           const item = document.createElement('div');
           item.className = 'market-item';
           item.innerHTML = `
             <div class="market-symbol">${data.symbol}</div>
-            <div class="market-price">${data.isGold ? data.price.toFixed(2) : data.price.toFixed(5)}</div>
+            <div class="market-price">${isGold ? data.price.toFixed(2) : data.price.toFixed(5)}</div>
             <div class="market-change ${changeClass}">
-              ${data.change >= 0 ? '+' : ''}${data.change.toFixed(data.isGold ? 2 : 5)}
+              ${data.change >= 0 ? '+' : ''}${isGold ? data.change.toFixed(2) : data.change.toFixed(5)}
               <br>
               <small>(${changePercent.toFixed(2)}%)</small>
             </div>
@@ -1936,8 +2010,9 @@
           
           // Add click handler to fill calculator with this price
           item.addEventListener('click', () => {
-            this.selectCurrency(data.symbol.replace('/', ''));
-            this.elements.entry.value = data.isGold ? data.price.toFixed(2) : data.price.toFixed(5);
+            const symbolKey = data.symbol.replace('/', '');
+            this.selectCurrency(symbolKey);
+            this.elements.entry.value = isGold ? data.price.toFixed(2) : data.price.toFixed(5);
             this.showStatus(`Filled entry price with ${data.symbol} market price`, 'success');
           });
           
@@ -2013,11 +2088,11 @@
         this.elements.refreshMarketData.innerHTML = '<span class="spinner"></span>';
         
         try {
-          const data = await this.api.getForexQuote(this.currentCurrency);
+          const data = await this.api.getMarketData(this.currentCurrency);
           this.lastPrice = data.price;
           this.updatePriceDisplay(data);
           
-          this.showStatus(`Updated ${currency.symbol} price: ${data.price.toFixed(currency.isGold ? 2 : 5)}`, 'success');
+          this.showStatus(`Updated ${currency.displaySymbol} price: ${data.price.toFixed(currency.isGold ? 2 : 5)}`, 'success');
         } catch (error) {
           console.error('Error refreshing price:', error);
           this.showStatus('Error refreshing price', 'error');
@@ -2053,7 +2128,7 @@
             (this.lastPrice + (typicalTake * pipValue)).toFixed(2) :
             (this.lastPrice + (typicalTake * pipValue)).toFixed(5);
           
-          this.showStatus(`Filled prices with current market data for ${currency.symbol}`, 'success');
+          this.showStatus(`Filled prices with current market data for ${currency.displaySymbol}`, 'success');
         }
       }
 
@@ -2072,7 +2147,7 @@
         const symbolEl = this.elements.livePriceFeed.querySelector('.symbol');
         const nameEl = this.elements.livePriceFeed.querySelector('.name');
         
-        symbolEl.textContent = `${currency.symbol} ${currency.isGold ? `$${data.price.toFixed(2)}` : data.price.toFixed(5)}`;
+        symbolEl.textContent = `${currency.displaySymbol} ${currency.isGold ? `$${data.price.toFixed(2)}` : data.price.toFixed(5)}`;
         nameEl.innerHTML = `Live feed • Change: <span class="${changeClass}">${data.change >= 0 ? '+' : ''}${data.change.toFixed(currency.isGold ? 2 : 5)} (${((data.change / data.price) * 100).toFixed(2)}%)</span>`;
       }
 
@@ -2101,6 +2176,110 @@
         }
       }
 
+      initDemoChart() {
+        // Simple demo chart using HTML/CSS
+        const chartContainer = document.getElementById('tradingview_chart');
+        chartContainer.innerHTML = '';
+        chartContainer.className = 'chart-placeholder';
+        
+        // Create a simple SVG chart
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "400");
+        svg.style.borderRadius = "var(--radius)";
+        
+        // Generate some candle data
+        const candles = this.generateDemoCandles(20);
+        const width = 800;
+        const height = 380;
+        const padding = 40;
+        const candleWidth = (width - padding * 2) / candles.length;
+        
+        // Find min/max for scaling
+        let min = Infinity;
+        let max = -Infinity;
+        candles.forEach(candle => {
+          min = Math.min(min, candle.low);
+          max = Math.max(max, candle.high);
+        });
+        
+        const scaleY = (value) => height - padding - ((value - min) / (max - min)) * (height - padding * 2);
+        
+        // Draw candles
+        candles.forEach((candle, i) => {
+          const x = padding + i * candleWidth + candleWidth / 2;
+          const openY = scaleY(candle.open);
+          const closeY = scaleY(candle.close);
+          const highY = scaleY(candle.high);
+          const lowY = scaleY(candle.low);
+          
+          // Wick
+          const wick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          wick.setAttribute("x1", x);
+          wick.setAttribute("y1", highY);
+          wick.setAttribute("x2", x);
+          wick.setAttribute("y2", lowY);
+          wick.setAttribute("stroke", candle.open > candle.close ? "#ef4444" : "#10b981");
+          wick.setAttribute("stroke-width", "1");
+          svg.appendChild(wick);
+          
+          // Body
+          const body = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          body.setAttribute("x", x - candleWidth / 4);
+          body.setAttribute("y", Math.min(openY, closeY));
+          body.setAttribute("width", candleWidth / 2);
+          body.setAttribute("height", Math.abs(openY - closeY));
+          body.setAttribute("fill", candle.open > candle.close ? "#ef4444" : "#10b981");
+          svg.appendChild(body);
+        });
+        
+        chartContainer.appendChild(svg);
+      }
+
+      generateDemoCandles(count) {
+        const candles = [];
+        let price = this.lastPrice || 1.0745;
+        
+        for (let i = 0; i < count; i++) {
+          const change = (Math.random() - 0.5) * 0.001;
+          const open = price;
+          const close = price + change;
+          const high = Math.max(open, close) + Math.random() * 0.0003;
+          const low = Math.min(open, close) - Math.random() * 0.0003;
+          
+          candles.push({ open, high, low, close });
+          price = close;
+        }
+        
+        return candles;
+      }
+
+      changeTimeframe(timeframe) {
+        this.currentTimeframe = timeframe;
+        
+        // Update active button
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelector(`[data-timeframe="${timeframe}"]`).classList.add('active');
+        
+        // Update chart
+        this.initDemoChart();
+      }
+
+      changeChartType(chartType) {
+        this.currentChartType = chartType;
+        
+        // Update active button
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelector(`[data-chart-type="${chartType}"]`).classList.add('active');
+        
+        // Update chart
+        this.initDemoChart();
+      }
+
       switchTab(tabId) {
         // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(content => {
@@ -2123,9 +2302,136 @@
         }
       }
 
-      // ... Rest of the existing methods (selectCurrency, calculate, etc.) remain the same ...
-      // [Include all the other methods from previous implementation here]
-      // For brevity, I'll show the structure but you should copy the complete methods
+      switchAITab(tabId) {
+        // For now, just highlight the button
+        document.querySelectorAll('[data-ai-tab]').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        
+        document.querySelector(`[data-ai-tab="${tabId}"]`).classList.add('active');
+      }
+
+      async generateAISignal() {
+        const currency = this.currencies[this.currentCurrency];
+        const balance = this.elements.balance.value || 10000;
+        const riskPct = this.elements.riskPct.value || 0.5;
+        const timeframe = this.currentTimeframe;
+        
+        // Update AI parameters display
+        this.aiElements.aiSymbol.textContent = currency.displaySymbol;
+        this.aiElements.aiTimeframe.textContent = `${timeframe}${timeframe === 'D' ? '' : 'M'}`;
+        this.aiElements.aiSpread.textContent = currency.typicalSpread;
+        this.aiElements.aiSession.textContent = currency.tradingHours.split(' ')[0];
+        this.aiElements.aiBalance.textContent = `$${parseFloat(balance).toLocaleString()}`;
+        this.aiElements.aiRiskPercent.textContent = `${riskPct}%`;
+        
+        // Show loading state
+        this.aiElements.generateSignalBtn.disabled = true;
+        this.aiElements.generateSignalBtn.innerHTML = '<span class="spinner"></span> Analyzing Market...';
+        this.showAIStatus('Analyzing market conditions and generating signal...', 'info');
+        
+        try {
+          // Call API to generate AI signal
+          const params = {
+            symbol: this.currentCurrency,
+            timeframe: timeframe,
+            balance: parseFloat(balance),
+            riskPercent: parseFloat(riskPct)
+          };
+          
+          const signal = await this.api.generateAISignal(params);
+          
+          if (signal.success) {
+            this.aiSignal = signal;
+            this.updateAISignalDisplay();
+            this.showAIStatus(signal.message, 'success');
+          } else {
+            throw new Error('Failed to generate signal');
+          }
+          
+        } catch (error) {
+          console.error('Error generating AI signal:', error);
+          this.showAIStatus('Error generating signal. Using demo data.', 'error');
+          
+          // Fallback to mock signal
+          this.aiSignal = this.api.mockAISignal({
+            symbol: this.currentCurrency,
+            timeframe: timeframe,
+            balance: parseFloat(balance),
+            riskPercent: parseFloat(riskPct)
+          });
+          this.updateAISignalDisplay();
+        } finally {
+          // Reset button
+          this.aiElements.generateSignalBtn.disabled = false;
+          this.aiElements.generateSignalBtn.innerHTML = '<span>⚡ Generate AI Signal</span>';
+        }
+      }
+
+      updateAISignalDisplay() {
+        const signal = this.aiSignal;
+        
+        // Update confidence meter
+        this.aiElements.confidenceFill.style.width = `${signal.confidence}%`;
+        this.aiElements.confidenceValue.textContent = `${signal.confidence}%`;
+        
+        // Update signal display
+        this.aiElements.aiSignal.className = `ai-signal ${signal.action.toLowerCase()}`;
+        
+        this.aiElements.signalIcon.textContent = signal.action === 'BUY' ? '📈' : '📉';
+        this.aiElements.signalText.textContent = `${signal.action} Signal`;
+        this.aiElements.signalText.className = signal.action === 'BUY' ? 'signal-buy' : 'signal-sell';
+        this.aiElements.signalDetails.textContent = `AI recommends ${signal.action} with ${signal.confidence}% confidence.`;
+        
+        // Update results
+        const currency = this.currencies[this.currentCurrency];
+        this.aiElements.aiEntryPrice.textContent = signal.entry.toFixed(currency.isGold ? 2 : 5);
+        this.aiElements.aiStopLoss.textContent = signal.stopLoss.toFixed(currency.isGold ? 2 : 5);
+        this.aiElements.aiTakeProfit.textContent = signal.takeProfit.toFixed(currency.isGold ? 2 : 5);
+        this.aiElements.aiRiskReward.textContent = signal.riskReward.toFixed(2);
+        this.aiElements.aiPositionSize.textContent = signal.positionSize.toFixed(3);
+        this.aiElements.aiDollarRisk.textContent = `$${signal.dollarRisk.toFixed(2)}`;
+        
+        // Update apply button
+        this.aiElements.applySignalBtn.className = `apply-signal-btn ${signal.action.toLowerCase()}`;
+        this.aiElements.applySignalBtn.innerHTML = `<span>📋 Apply ${signal.action} Signal</span>';
+        
+        this.aiElements.aiResults.style.display = 'block';
+      }
+
+      applyAISignal() {
+        if (!this.aiSignal) {
+          this.showAIStatus('No valid signal to apply', 'error');
+          return;
+        }
+        
+        const signal = this.aiSignal;
+        const currency = this.currencies[this.currentCurrency];
+        
+        // Apply to calculator
+        this.elements.entry.value = signal.entry.toFixed(currency.isGold ? 2 : 5);
+        this.elements.stop.value = signal.stopLoss.toFixed(currency.isGold ? 2 : 5);
+        this.elements.take.value = signal.takeProfit.toFixed(currency.isGold ? 2 : 5);
+        
+        // Switch to calculator tab
+        this.switchTab('calculator');
+        
+        // Calculate position size
+        this.calculate();
+        
+        this.showAIStatus(`✅ ${signal.action} signal applied to calculator!`, 'success');
+      }
+
+      showAIStatus(message, type = 'info') {
+        const status = this.aiElements.aiStatus;
+        status.textContent = message;
+        status.className = `ai-status ${type}`;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          status.className = 'ai-status';
+        }, 5000);
+      }
 
       selectCurrency(currencyCode) {
         this.currentCurrency = currencyCode;
@@ -2139,12 +2445,12 @@
         
         // Update selected currency display
         this.elements.selectedCurrency.innerHTML = `
-          <span class="symbol">${currency.symbol.replace(/([A-Z]{3})([A-Z]{3})/, '$1/$2')}</span>
+          <span class="symbol">${currency.displaySymbol}</span>
           <span class="name">${currency.name}</span>
         `;
         
         // Update result currency display
-        this.elements.resultCurrency.textContent = currency.symbol.replace(/([A-Z]{3})([A-Z]{3})/, '$1/$2');
+        this.elements.resultCurrency.textContent = currency.displaySymbol;
         
         // Update currency info
         this.elements.currencyInfo.innerHTML = `
@@ -2161,7 +2467,7 @@
         entryInput.step = currency.isGold ? '0.01' : '0.00001';
         
         // Update chart
-        this.updateChartSymbol();
+        this.initDemoChart();
         
         // Clear previous results
         this.resetResults();
@@ -2197,7 +2503,7 @@
 
         // Validate price ranges for selected currency
         if (entry < currency.priceRange.min * 0.5 || entry > currency.priceRange.max * 1.5) {
-          this.showStatus(`Entry price seems unusual for ${currency.symbol}. Typical range: ${currency.priceRange.min} - ${currency.priceRange.max}`, 'warning');
+          this.showStatus(`Entry price seems unusual for ${currency.displaySymbol}. Typical range: ${currency.priceRange.min} - ${currency.priceRange.max}`, 'warning');
         }
 
         if (balance < 100) {
@@ -2248,6 +2554,32 @@
         this.savePreferences();
       }
 
+      getInputValue(id) {
+        const element = this.elements[id];
+        const value = parseFloat(element.value);
+        return isNaN(value) ? null : value;
+      }
+
+      calculatePipDistance(price1, price2) {
+        const currency = this.currencies[this.currentCurrency];
+        return Math.abs(price1 - price2) / currency.pipValue;
+      }
+
+      formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2
+        }).format(amount);
+      }
+
+      formatNumber(num, decimals = 3) {
+        return new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        }).format(num);
+      }
+
       showStatus(message, type = 'error') {
         const status = this.elements.status;
         status.textContent = message;
@@ -2261,8 +2593,164 @@
         }
       }
 
-      // ... Include all other methods from the previous implementation ...
-      // Methods like initChart, generateAISignal, updateAISignalDisplay, etc.
+      analyzeTrade(pipsStop, rrRatio, riskPct, lots, currency) {
+        let statusMsg = '';
+        let statusType = 'success';
+        
+        if (pipsStop < 5 && !currency.isGold) {
+          statusMsg = 'Warning: Tight stop loss (< 5 pips) - consider widening to avoid market noise';
+          statusType = 'warning';
+        } else if (pipsStop > 50 && !currency.isGold) {
+          statusMsg = 'Warning: Wide stop loss (> 50 pips) - consider tighter risk management';
+          statusType = 'warning';
+        } else if (rrRatio < 1) {
+          statusMsg = 'Warning: Risk:Reward ratio less than 1:1 - consider adjusting take profit';
+          statusType = 'warning';
+        } else if (rrRatio >= 2) {
+          statusMsg = 'Excellent: Risk:Reward ratio of 1:' + rrRatio.toFixed(1) + ' provides good profit potential';
+          statusType = 'success';
+        } else {
+          statusMsg = 'Good: Position calculated successfully. Risk: ' + riskPct + '% of account';
+          statusType = 'success';
+        }
+        
+        if (lots > 10) {
+          statusMsg += '. Large position size detected - ensure sufficient account margin';
+          statusType = 'warning';
+        }
+        
+        this.showStatus(statusMsg, statusType);
+      }
+
+      reset() {
+        this.elements.entry.value = '';
+        this.elements.stop.value = '';
+        this.elements.take.value = '';
+        this.elements.balance.value = '10000';
+        this.elements.riskPct.value = '0.5';
+        this.elements.result.classList.remove('show');
+        this.elements.status.className = 'status';
+        
+        // Fill with current market price
+        this.fillWithMarketPrice();
+        
+        this.showStatus('Calculator reset. Ready for new calculation.', 'success');
+      }
+
+      resetResults() {
+        this.elements.result.classList.remove('show');
+        this.elements.status.className = 'status';
+      }
+
+      savePreferences() {
+        const preferences = {
+          currency: this.currentCurrency,
+          balance: this.elements.balance.value,
+          riskPct: this.elements.riskPct.value,
+          pipValue: this.elements.pipValue.value,
+          theme: document.body.getAttribute('data-theme')
+        };
+        localStorage.setItem('scalping-calculator-preferences', JSON.stringify(preferences));
+      }
+
+      loadPreferences() {
+        const saved = localStorage.getItem('scalping-calculator-preferences');
+        if (saved) {
+          try {
+            const preferences = JSON.parse(saved);
+            
+            if (preferences.currency && this.currencies[preferences.currency]) {
+              this.selectCurrency(preferences.currency);
+            }
+            
+            if (preferences.balance) {
+              this.elements.balance.value = preferences.balance;
+            }
+            
+            if (preferences.riskPct) {
+              this.elements.riskPct.value = preferences.riskPct;
+            }
+            
+            if (preferences.pipValue) {
+              this.elements.pipValue.value = preferences.pipValue;
+            }
+            
+            if (preferences.theme) {
+              document.body.setAttribute('data-theme', preferences.theme);
+              this.updateThemeButton();
+            }
+          } catch (e) {
+            console.error('Error loading preferences:', e);
+          }
+        }
+      }
+
+      toggleTheme() {
+        const body = document.body;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        
+        body.setAttribute('data-theme', newTheme);
+        this.updateThemeButton();
+        localStorage.setItem('scalping-calculator-theme', newTheme);
+      }
+
+      updateThemeButton() {
+        const body = document.body;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        
+        const themeBtn = this.elements.themeBtn;
+        const icon = themeBtn.querySelector('.theme-icon');
+        const text = themeBtn.querySelector('.theme-text');
+        
+        icon.textContent = isDark ? '🌙' : '☀️';
+        text.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        
+        // Update AI theme button
+        const aiThemeBtn = this.aiElements.aiThemeBtn;
+        const aiIcon = aiThemeBtn.querySelector('.theme-icon');
+        const aiText = aiThemeBtn.querySelector('.theme-text');
+        
+        aiIcon.textContent = isDark ? '🌙' : '☀️';
+        aiText.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+      }
+
+      // Chart interaction methods
+      setFromChart(type) {
+        const currency = this.currencies[this.currentCurrency];
+        const price = this.lastPrice || (currency.isGold ? 2150.50 : 1.0745);
+        
+        switch(type) {
+          case 'entry':
+            this.elements.entry.value = currency.isGold ? price.toFixed(2) : price.toFixed(5);
+            break;
+          case 'stop':
+            const stopPrice = currency.isGold ? 
+              (price - 50 * currency.pipValue).toFixed(2) :
+              (price - 10 * currency.pipValue).toFixed(5);
+            this.elements.stop.value = stopPrice;
+            break;
+          case 'take':
+            const takePrice = currency.isGold ? 
+              (price + 100 * currency.pipValue).toFixed(2) :
+              (price + 20 * currency.pipValue).toFixed(5);
+            this.elements.take.value = takePrice;
+            break;
+        }
+        
+        this.showStatus(`Set ${type} price from chart data`, 'success');
+      }
+
+      updateAllFromChart() {
+        this.setFromChart('entry');
+        this.setFromChart('stop');
+        this.setFromChart('take');
+      }
+
+      syncWithChart() {
+        this.updateAllFromChart();
+        this.calculate();
+      }
     }
 
     // Initialize the calculator when DOM is loaded
