@@ -4,7 +4,7 @@ A single-file, browser-based tool to size EUR/USD scalping trades and check risk
 
 ## Live Site
 After your first push to `main`, GitHub Actions will publish at:
-`https://georgetolin.github.io/eurusd-scalper`
+`https://georgetolin.github.io/Multi-Currency-Scalping-Calculator/`
 
 ## Use
 1. Open the site.
