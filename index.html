@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EUR/USD Scalping Calculator | Risk Management Tool</title>
-  <meta name="description" content="Professional position sizing calculator for EUR/USD scalping with risk management">
+  <title>Forex & Gold Scalping Calculator | Multi-Currency Position Sizing</title>
+  <meta name="description" content="Professional position sizing calculator for major currency pairs and XAU/USD with risk management">
   
   <style>
     :root {
@@ -16,6 +16,7 @@
       --accent-hover: #16a34a;
       --danger: #ef4444;
       --warning: #eab308;
+      --info: #3b82f6;
       --border: rgba(255, 255, 255, 0.1);
       --border-light: rgba(255, 255, 255, 0.05);
       --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -32,6 +33,7 @@
       --accent-hover: #15803d;
       --danger: #dc2626;
       --warning: #ca8a04;
+      --info: #2563eb;
       --border: rgba(0, 0, 0, 0.1);
       --border-light: rgba(0, 0, 0, 0.05);
       --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -56,7 +58,7 @@
 
     .app {
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       background: var(--card);
       border-radius: var(--radius);
       padding: 30px;
@@ -80,7 +82,7 @@
       font-size: 1.8rem;
       font-weight: 700;
       margin-bottom: 6px;
-      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      background: linear-gradient(135deg, var(--accent), var(--info));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -89,7 +91,7 @@
     .subtitle {
       color: var(--text-muted);
       font-size: 0.95rem;
-      max-width: 600px;
+      max-width: 700px;
     }
 
     .theme-toggle {
@@ -109,6 +111,41 @@
     .theme-toggle:hover {
       background: var(--border-light);
       border-color: var(--accent);
+    }
+
+    .currency-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .currency-badge {
+      background: var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .currency-badge:hover {
+      background: var(--border-light);
+      border-color: var(--accent);
+    }
+
+    .currency-badge.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .currency-badge.xau {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
     }
 
     .grid {
@@ -165,6 +202,27 @@
     input::placeholder {
       color: var(--text-muted);
       opacity: 0.7;
+    }
+
+    .currency-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--border-light);
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+
+    .currency-info .pip {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .currency-info .spread {
+      font-weight: 600;
+      color: var(--warning);
     }
 
     .actions {
@@ -309,17 +367,6 @@
       color: var(--accent);
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      background: var(--border);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -331,6 +378,35 @@
       margin-top: 4px;
       opacity: 0.8;
     }
+
+    .currency-selector {
+      margin-bottom: 20px;
+    }
+
+    .currency-selector label {
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .selected-currency {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--border-light);
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .selected-currency .symbol {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .selected-currency .name {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body data-theme="dark">
@@ -338,19 +414,38 @@
     <div class="header">
       <div class="top-bar">
         <div>
-          <h1>EUR/USD Scalping Calculator</h1>
-          <p class="subtitle">Professional position sizing and risk management tool for forex scalping. Calculate optimal lot sizes, risk/reward ratios, and validate your setups.</p>
+          <h1>Multi-Currency Scalping Calculator</h1>
+          <p class="subtitle">Professional position sizing calculator for major forex pairs and XAU/USD (Gold). Calculate optimal lot sizes, risk/reward ratios, and validate your setups.</p>
         </div>
         <button class="theme-toggle" id="themeBtn">
           <span class="theme-icon">🌙</span>
           <span class="theme-text">Dark Mode</span>
         </button>
       </div>
+
+      <div class="currency-badges">
+        <div class="currency-badge active" data-currency="EURUSD">EUR/USD</div>
+        <div class="currency-badge" data-currency="GBPUSD">GBP/USD</div>
+        <div class="currency-badge" data-currency="USDJPY">USD/JPY</div>
+        <div class="currency-badge" data-currency="AUDUSD">AUD/USD</div>
+        <div class="currency-badge" data-currency="USDCAD">USD/CAD</div>
+        <div class="currency-badge" data-currency="NZDUSD">NZD/USD</div>
+        <div class="currency-badge" data-currency="USDCHF">USD/CHF</div>
+        <div class="currency-badge xau" data-currency="XAUUSD">XAU/USD (Gold)</div>
+      </div>
+    </div>
+
+    <div class="currency-selector">
+      <label>Selected Instrument:</label>
+      <div class="selected-currency" id="selectedCurrency">
+        <span class="symbol">EUR/USD</span>
+        <span class="name">Euro vs US Dollar</span>
+      </div>
     </div>
 
     <div class="grid">
       <div class="input-group">
-        <label for="entry" class="required">Entry Price (EUR/USD)</label>
+        <label for="entry" class="required">Entry Price</label>
         <input 
           type="number" 
           id="entry" 
@@ -359,7 +454,7 @@
           min="0.5"
           max="2"
         >
-        <div class="input-hint">Current EUR/USD market price</div>
+        <div class="input-hint">Current market price for selected instrument</div>
       </div>
       
       <div class="input-group">
@@ -393,7 +488,7 @@
           placeholder="e.g., 10000"
           min="100"
         >
-        <div class="input-hint">Your trading account balance</div>
+        <div class="input-hint">Your trading account balance in USD</div>
       </div>
       
       <div class="input-group">
@@ -421,6 +516,12 @@
       </div>
     </div>
 
+    <div class="currency-info" id="currencyInfo">
+      <div><span class="pip">1 pip = 0.0001</span> (4th decimal)</div>
+      <div>Typical spread: <span class="spread">0.6-1.2 pips</span></div>
+      <div>Trading hours: London-NY overlap (13:00-16:00 GMT)</div>
+    </div>
+
     <div class="actions">
       <button class="btn-primary" id="calcBtn">
         <span>📊 Calculate Position Size</span>
@@ -431,7 +532,7 @@
     </div>
 
     <div class="result" id="result">
-      <h2 style="margin-bottom: 20px; color: var(--text);">Results</h2>
+      <h2 style="margin-bottom: 20px; color: var(--text);">Results for <span id="resultCurrency">EUR/USD</span></h2>
       <div class="result-grid">
         <div class="result-item">
           <h3>Pips to Stop Loss</h3>
@@ -454,7 +555,7 @@
           <div class="result-value" id="lots">—</div>
         </div>
         <div class="result-item">
-          <h3>Position Units (EUR)</h3>
+          <h3>Position Units</h3>
           <div class="result-value" id="units">—</div>
         </div>
       </div>
@@ -464,21 +565,99 @@
 
     <div class="footer">
       <div class="tip">
-        <p><strong>💡 Professional Scalping Tips:</strong></p>
-        <p>• Scalping EUR/USD works best during London (08:00-16:00 GMT) and New York (13:00-21:00 GMT) overlap for maximum liquidity<br>
-        • Maintain at least 1:1.5 risk-reward ratio for sustainable profitability<br>
-        • Consider spreads (typically 0.6-1.2 pips) when setting tight stops<br>
-        • Use 5-15 pip stops for scalping, adjusting for volatility conditions</p>
+        <p><strong>💡 Trading Information:</strong></p>
+        <p><strong>EUR/USD:</strong> Most liquid pair, best during London/NY overlap (13:00-16:00 GMT)<br>
+        <strong>GBP/USD:</strong> High volatility, watch for UK economic news (08:00 GMT)<br>
+        <strong>USD/JPY:</strong> Lower spreads, influenced by BOJ and US yields (Tokyo session)<br>
+        <strong>XAU/USD:</strong> 1 pip = $0.01, trades 24/5, higher spreads (0.3-0.8), high volatility</p>
       </div>
       <p style="margin-top: 16px; font-size: 0.8rem; opacity: 0.7;">
+        Note: Pip values vary by pair. XAU/USD (Gold) uses $0.01 per pip for micro lots.<br>
         Disclaimer: This tool is for educational purposes. Trading involves risk of loss.
       </p>
     </div>
   </div>
 
   <script>
-    class ScalpingCalculator {
+    class MultiCurrencyCalculator {
       constructor() {
+        this.currencies = {
+          EURUSD: {
+            symbol: "EUR/USD",
+            name: "Euro vs US Dollar",
+            pipValue: 0.0001,
+            typicalSpread: "0.6-1.2 pips",
+            tradingHours: "London-NY overlap (13:00-16:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 0.8, max: 1.5 }
+          },
+          GBPUSD: {
+            symbol: "GBP/USD",
+            name: "British Pound vs US Dollar",
+            pipValue: 0.0001,
+            typicalSpread: "0.8-1.5 pips",
+            tradingHours: "London session (08:00-16:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 1.1, max: 1.5 }
+          },
+          USDJPY: {
+            symbol: "USD/JPY",
+            name: "US Dollar vs Japanese Yen",
+            pipValue: 0.01,
+            typicalSpread: "0.5-1.0 pips",
+            tradingHours: "Tokyo-London overlap (00:00-08:00 GMT)",
+            pipLabel: "1 pip = 0.01 (2nd decimal)",
+            priceRange: { min: 100, max: 160 }
+          },
+          AUDUSD: {
+            symbol: "AUD/USD",
+            name: "Australian Dollar vs US Dollar",
+            pipValue: 0.0001,
+            typicalSpread: "0.7-1.3 pips",
+            tradingHours: "Sydney-Tokyo overlap (22:00-06:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 0.55, max: 0.85 }
+          },
+          USDCAD: {
+            symbol: "USD/CAD",
+            name: "US Dollar vs Canadian Dollar",
+            pipValue: 0.0001,
+            typicalSpread: "0.8-1.5 pips",
+            tradingHours: "NY session (13:00-21:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 1.2, max: 1.5 }
+          },
+          NZDUSD: {
+            symbol: "NZD/USD",
+            name: "New Zealand Dollar vs US Dollar",
+            pipValue: 0.0001,
+            typicalSpread: "0.9-1.8 pips",
+            tradingHours: "Wellington-Sydney (21:00-05:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 0.55, max: 0.75 }
+          },
+          USDCHF: {
+            symbol: "USD/CHF",
+            name: "US Dollar vs Swiss Franc",
+            pipValue: 0.0001,
+            typicalSpread: "0.8-1.5 pips",
+            tradingHours: "London session (08:00-16:00 GMT)",
+            pipLabel: "1 pip = 0.0001 (4th decimal)",
+            priceRange: { min: 0.85, max: 1.05 }
+          },
+          XAUUSD: {
+            symbol: "XAU/USD",
+            name: "Gold vs US Dollar",
+            pipValue: 0.01,
+            typicalSpread: "0.3-0.8 pips",
+            tradingHours: "24/5 (highest liquidity London-NY)",
+            pipLabel: "1 pip = $0.01 (2nd decimal)",
+            priceRange: { min: 1800, max: 2500 },
+            isGold: true
+          }
+        };
+
+        this.currentCurrency = 'EURUSD';
         this.initializeElements();
         this.setupEventListeners();
         this.loadPreferences();
@@ -502,7 +681,10 @@
           rr: document.getElementById('rr'),
           riskUsd: document.getElementById('riskUsd'),
           lots: document.getElementById('lots'),
-          units: document.getElementById('units')
+          units: document.getElementById('units'),
+          currencyInfo: document.getElementById('currencyInfo'),
+          selectedCurrency: document.getElementById('selectedCurrency'),
+          resultCurrency: document.getElementById('resultCurrency')
         };
       }
 
@@ -511,7 +693,15 @@
         this.elements.resetBtn.addEventListener('click', () => this.reset());
         this.elements.themeBtn.addEventListener('click', () => this.toggleTheme());
         
-        // Auto-calculate on Enter key in any input
+        // Currency selection
+        document.querySelectorAll('.currency-badge').forEach(badge => {
+          badge.addEventListener('click', (e) => {
+            const currency = e.target.dataset.currency;
+            this.selectCurrency(currency);
+          });
+        });
+
+        // Auto-calculate on Enter
         const inputs = ['entry', 'stop', 'take', 'balance', 'riskPct'];
         inputs.forEach(id => {
           document.getElementById(id).addEventListener('keypress', (e) => {
@@ -519,12 +709,54 @@
           });
         });
 
-        // Auto-fill example values on focus for demo
+        // Auto-fill example values based on currency
         this.elements.entry.addEventListener('focus', () => {
           if (!this.elements.entry.value) {
-            this.elements.entry.value = '1.07450';
+            const currency = this.currencies[this.currentCurrency];
+            this.elements.entry.value = currency.priceRange.min + 
+              ((currency.priceRange.max - currency.priceRange.min) * 0.5);
           }
         });
+      }
+
+      selectCurrency(currencyCode) {
+        this.currentCurrency = currencyCode;
+        const currency = this.currencies[currencyCode];
+        
+        // Update UI
+        document.querySelectorAll('.currency-badge').forEach(badge => {
+          badge.classList.remove('active');
+        });
+        document.querySelector(`[data-currency="${currencyCode}"]`).classList.add('active');
+        
+        // Update selected currency display
+        this.elements.selectedCurrency.innerHTML = `
+          <span class="symbol">${currency.symbol}</span>
+          <span class="name">${currency.name}</span>
+        `;
+        
+        // Update result currency display
+        this.elements.resultCurrency.textContent = currency.symbol;
+        
+        // Update currency info
+        this.elements.currencyInfo.innerHTML = `
+          <div><span class="pip">${currency.pipLabel}</span></div>
+          <div>Typical spread: <span class="spread">${currency.typicalSpread}</span></div>
+          <div>Trading hours: ${currency.tradingHours}</div>
+        `;
+        
+        // Update input placeholders and constraints
+        const entryInput = this.elements.entry;
+        entryInput.placeholder = `e.g., ${currency.priceRange.min.toFixed(currency.isGold ? 2 : 5)}`;
+        entryInput.min = currency.priceRange.min * 0.8;
+        entryInput.max = currency.priceRange.max * 1.2;
+        entryInput.step = currency.isGold ? '0.01' : '0.00001';
+        
+        // Clear previous results
+        this.resetResults();
+        
+        // Save preference
+        localStorage.setItem('scalping-calculator-currency', currencyCode);
       }
 
       getInputValue(id) {
@@ -534,8 +766,8 @@
       }
 
       calculatePipDistance(price1, price2) {
-        // For EUR/USD, 1 pip = 0.0001 (4th decimal place)
-        return Math.abs(price1 - price2) / 0.0001;
+        const currency = this.currencies[this.currentCurrency];
+        return Math.abs(price1 - price2) / currency.pipValue;
       }
 
       formatCurrency(amount) {
@@ -564,6 +796,8 @@
       }
 
       calculate() {
+        const currency = this.currencies[this.currentCurrency];
+        
         // Get all input values
         const entry = this.getInputValue('entry');
         const stop = this.getInputValue('stop');
@@ -581,6 +815,11 @@
         if (entry <= 0 || stop <= 0 || take <= 0) {
           this.showStatus('Prices must be positive numbers.', 'error');
           return;
+        }
+
+        // Validate price ranges for selected currency
+        if (entry < currency.priceRange.min * 0.5 || entry > currency.priceRange.max * 1.5) {
+          this.showStatus(`Entry price seems unusual for ${currency.symbol}. Typical range: ${currency.priceRange.min} - ${currency.priceRange.max}`, 'warning');
         }
 
         if (balance < 100) {
@@ -604,14 +843,14 @@
         const rrRatio = pipsTake / pipsStop;
         const riskUsd = balance * (riskPct / 100);
         
-        // Calculate position size with safety checks
+        // Calculate position size
         let lots = riskUsd / (pipsStop * pipValPerLot);
         
         // Apply reasonable limits
-        const maxLots = 1000; // Safety limit
-        lots = Math.min(Math.max(lots, 0.001), maxLots); // Min 0.001 lot
+        const maxLots = currency.isGold ? 100 : 1000; // Lower max for gold due to higher value
+        lots = Math.min(Math.max(lots, 0.001), maxLots);
         
-        const units = lots * 100000;
+        const units = lots * (currency.isGold ? 100 : 100000); // Gold: 1 lot = 100 oz, Forex: 1 lot = 100,000 units
 
         // Update UI with results
         this.elements.pipsStop.textContent = this.formatNumber(pipsStop, 1);
@@ -625,30 +864,33 @@
         this.elements.result.classList.add('show');
 
         // Set status based on analysis
-        this.analyzeTrade(pipsStop, rrRatio, riskPct, lots);
+        this.analyzeTrade(pipsStop, rrRatio, riskPct, lots, currency);
         
         // Save preferences
         this.savePreferences();
       }
 
-      analyzeTrade(pipsStop, rrRatio, riskPct, lots) {
+      analyzeTrade(pipsStop, rrRatio, riskPct, lots, currency) {
         let message = '';
         let type = 'success';
 
-        if (pipsStop < 3) {
-          message = '⚠️ Stop loss is very tight (under 3 pips). Consider spread impact.';
+        const minPips = currency.isGold ? 50 : 3; // Gold requires larger stops
+        const maxPips = currency.isGold ? 500 : 30;
+
+        if (pipsStop < minPips) {
+          message = `⚠️ Stop loss is very tight (under ${minPips} pips). ${currency.isGold ? 'Gold requires wider stops due to volatility.' : 'Consider spread impact.'}`;
           type = 'warning';
-        } else if (pipsStop > 30) {
-          message = '⚠️ Stop loss is wide (over 30 pips). This may not be scalping.';
+        } else if (pipsStop > maxPips) {
+          message = `⚠️ Stop loss is wide (over ${maxPips} pips). This may not be scalping.`;
           type = 'warning';
         } else if (rrRatio < 1) {
           message = '⚠️ Risk:Reward is below 1:1. Consider adjusting your targets.';
           type = 'warning';
-        } else if (rrRatio >= 1.5) {
-          message = '✅ Good risk:reward ratio! Setup looks promising.';
+        } else if (rrRatio >= (currency.isGold ? 1.2 : 1.5)) {
+          message = `✅ Good risk:reward ratio for ${currency.symbol}!`;
           type = 'success';
         } else {
-          message = '📈 Setup is acceptable. Ensure proper entry timing.';
+          message = `📈 Setup is acceptable for ${currency.symbol}.`;
           type = 'success';
         }
 
@@ -657,8 +899,9 @@
           type = 'warning';
         }
 
-        if (lots > 50) {
-          message += ' Position size is large - ensure sufficient account margin.';
+        const maxLotsForCurrency = currency.isGold ? 20 : 50;
+        if (lots > maxLotsForCurrency) {
+          message += ` Position size is large for ${currency.symbol} - ensure sufficient margin.`;
           type = 'warning';
         }
 
@@ -674,12 +917,24 @@
         this.elements.riskPct.value = '0.5';
         this.elements.pipValue.value = '10';
 
-        // Hide results and status
-        this.elements.result.classList.remove('show');
-        this.hideStatus();
+        // Reset results
+        this.resetResults();
 
         // Focus on first input
         this.elements.entry.focus();
+      }
+
+      resetResults() {
+        this.elements.result.classList.remove('show');
+        this.hideStatus();
+        
+        // Reset result values
+        this.elements.pipsStop.textContent = '—';
+        this.elements.pipsTake.textContent = '—';
+        this.elements.rr.textContent = '—';
+        this.elements.riskUsd.textContent = '—';
+        this.elements.lots.textContent = '—';
+        this.elements.units.textContent = '—';
       }
 
       toggleTheme() {
@@ -710,6 +965,12 @@
           
           icon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
           text.textContent = savedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+        }
+
+        // Load currency preference
+        const savedCurrency = localStorage.getItem('scalping-calculator-currency');
+        if (savedCurrency && this.currencies[savedCurrency]) {
+          this.selectCurrency(savedCurrency);
         }
 
         // Try to load last inputs
@@ -744,7 +1005,7 @@
 
     // Initialize the calculator when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new ScalpingCalculator();
+      new MultiCurrencyCalculator();
     });
   </script>
 </body>
